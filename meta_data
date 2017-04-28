@@ -1,0 +1,3 @@
+instance-id: NODE_NAME
+hostname: NODE_NAME
+local-hostname: NODE_NAME.example.com

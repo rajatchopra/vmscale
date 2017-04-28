@@ -1,0 +1,42 @@
+#cloud-config
+disable_root: true
+
+hostname: NODE_NAME
+fqdn: NODE_NAME.example.com
+
+mounts:
+- [ sdb ]
+
+users:
+  - default
+  - name: root
+    ssh_authorized_keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCz95udfbzmF9vpIXatQoybVEQovS3snkhS7WflBhG6RADYAKAH01CKwtYR9ao1J7ZHJ5DVOJO2lla+rpJrBl3qyCvbj9tXFMc6fKtHR6p7o+3nBGzod/sy4aGs+6R1wa16gpX9/HUZBJ0oIdTz14xtCi11Qvq290gwzsLgUjd82y7IfcAQbasVWWpjPGXkI11dIY3jjrYEfh+VpegsUtGuxgkbaFt+zbW6L5nhGk8WC+C5c125cWRQHePhV+NEYTiLrLeUl7vYWU+RsbC9CyBzqFBsidIxUDD/WC+HgYWP5RCPyu+iec6CHPf3UKU1VefB0ZqnTnukatYHwFlg2eQX/rhyPQMgB4vIYr9fmgGi0/+UaKv4EAM3lKhxANAv6teQrr1BmMBrXKihkk5jvjySHILqD9POu2aQjlCKUVzOxdIoc8EgsRgB09o7skZAT38OOfoDSHb+holQ4OiKulWmoTw+obcdqcf38JBg76DGjsROQwPNKvIdPQeYKb7BevAUxNcLryGRGaJ/r0biuHmYvLlO9NZK9WN83I8j3afw/h9Q/f13WtZ43iXh2nmxy102ajXx89gCsH/teX3pqQC68a1kN/Mc3z3ijumYVhEEFUcS5xHXga3v4ZIY9C+TE2KVk5ARhKhUUL47iThMI6NSahDPzZGi7CnQ0STIdLSrkQ== rchopra@redhat.com
+
+system_info:
+  default_user:
+    name: openshift
+    sudo: ["ALL=(ALL) NOPASSWD: ALL"]
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCz95udfbzmF9vpIXatQoybVEQovS3snkhS7WflBhG6RADYAKAH01CKwtYR9ao1J7ZHJ5DVOJO2lla+rpJrBl3qyCvbj9tXFMc6fKtHR6p7o+3nBGzod/sy4aGs+6R1wa16gpX9/HUZBJ0oIdTz14xtCi11Qvq290gwzsLgUjd82y7IfcAQbasVWWpjPGXkI11dIY3jjrYEfh+VpegsUtGuxgkbaFt+zbW6L5nhGk8WC+C5c125cWRQHePhV+NEYTiLrLeUl7vYWU+RsbC9CyBzqFBsidIxUDD/WC+HgYWP5RCPyu+iec6CHPf3UKU1VefB0ZqnTnukatYHwFlg2eQX/rhyPQMgB4vIYr9fmgGi0/+UaKv4EAM3lKhxANAv6teQrr1BmMBrXKihkk5jvjySHILqD9POu2aQjlCKUVzOxdIoc8EgsRgB09o7skZAT38OOfoDSHb+holQ4OiKulWmoTw+obcdqcf38JBg76DGjsROQwPNKvIdPQeYKb7BevAUxNcLryGRGaJ/r0biuHmYvLlO9NZK9WN83I8j3afw/h9Q/f13WtZ43iXh2nmxy102ajXx89gCsH/teX3pqQC68a1kN/Mc3z3ijumYVhEEFUcS5xHXga3v4ZIY9C+TE2KVk5ARhKhUUL47iThMI6NSahDPzZGi7CnQ0STIdLSrkQ== rchopra@redhat.com
+
+write_files:
+  - path: /etc/sudoers.d/00-openshift-no-requiretty
+    permissions: 440
+    content: |
+        Defaults:openshift !requiretty
+  - path: /etc/sysconfig/docker-storage-setup
+    owner: root:root
+    permissions: '0644'
+    content: |
+      DEVS=/dev/sdb
+      VG=docker_vg
+      EXTRA_DOCKER_STORAGE_OPTIONS='--storage-opt dm.blkdiscard=true'
+  - path: /etc/systemd/system/fstrim.timer.d/hourly.conf
+    content: |
+      [Timer]
+      OnCalendar=hourly
+
+runcmd:
+  - systemctl enable --now fstrim.timer
