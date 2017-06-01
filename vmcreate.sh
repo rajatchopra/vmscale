@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-1}
+NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:4}
 
 install_pkgs() {
 	dnf -y groupinstall Virtualization
