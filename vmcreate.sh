@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:4}
+NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-4}
 
 install_pkgs() {
 	dnf -y groupinstall Virtualization
@@ -9,7 +9,7 @@ install_pkgs() {
 mkdir -p libvirt_storage
 cd libvirt_storage
 export STORAGE_PATH=`pwd`
-if [ -z CentOS-7-x86_64-GenericCloud.qcow2 ]; then
+if [ ! -f CentOS-7-x86_64-GenericCloud.qcow2 ]; then
   wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
   unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
 fi
@@ -28,12 +28,14 @@ fi
 
 
 MACHINE_PREFIX=`hostname`
+echo "Creating ${NUM_VMS_PER_MACHINE} machines:"
 for i in `seq 1 ${NUM_VMS_PER_MACHINE}`
 do
+  echo "Creating machine number $i"
   NODE_NAME=${MACHINE_PREFIX}_${i}
   ## Create the boot iso
   mkdir -p ${NODE_NAME}_config
-  cd ${NODE_NAME}_config
+  pushd ${NODE_NAME}_config
   cp ../../user_data user-data
   cp ../../meta_data meta-data
   sed -i s/NODE_NAME/${NODE_NAME}/ user-data
@@ -42,5 +44,6 @@ do
   virsh vol-create-as ovn-kubernetes ${NODE_NAME}.qcow2 20G --format qcow2 --backing-vol ${STORAGE_PATH}/CentOS-7-x86_64-GenericCloud.qcow2 --backing-vol-format qcow2
   virt-install --connect qemu:///system --ram 10240 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${STORAGE_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${STORAGE_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
   virsh attach-interface --domain ${NODE_NAME} --type bridge --source rcbr0 --config --live
-  cd ..
+  popd
+  echo "Done creating machine number $i"
 done
