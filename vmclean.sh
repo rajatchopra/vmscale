@@ -12,16 +12,12 @@ do
   NODE_NAME=${MACHINE_PREFIX}_${i}
   virsh destroy ${NODE_NAME}
   virsh undefine ${NODE_NAME}
+  rm -rf ${NODE_NAME}*
 done
 
 cd ..
-rm -rf ${STORAGE_PATH}
 
 ## Delete the storage pool
 virsh pool-destroy ovn-kubernetes
 virsh pool-delete ovn-kubernetes
 
-#brctl delbr rcbr0
-brctl delif rcbr0 em1
-ip link set dev rcbr0 down
-brctl delbr rcbr0
