@@ -9,8 +9,10 @@ install_pkgs() {
 mkdir -p libvirt_storage
 cd libvirt_storage
 export STORAGE_PATH=`pwd`
-wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
-unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
+if [ -z CentOS-7-x86_64-GenericCloud.qcow2 ]; then
+  wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
+  unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
+fi
 
 ## Create a storage pool
 # https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/chap-Virtualization_Administration_Guide-Storage_Pools-Storage_Pools.html
