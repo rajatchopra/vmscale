@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:4}
+NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-4}
 
 mkdir -p libvirt_storage
 cd libvirt_storage
