@@ -22,7 +22,7 @@ virsh pool-autostart ovn-kubernetes
 virsh pool-refresh ovn-kubernetes
 
 MACHINE_PREFIX=`hostname`
-for i in {1..${NUM_VMS_PER_MACHINE}}
+for i in `seq 1 ${NUM_VMS_PER_MACHINE}`
 do
   NODE_NAME=${MACHINE_PREFIX}_${i}
   ## Create the boot iso
