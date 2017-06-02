@@ -2,4 +2,8 @@
 
 mkdir -p /data/src
 cd /data/src
-git clone https://github.com/rajatchopra/vmscale
+if [ -z vmscale ]; then
+  git clone https://github.com/rajatchopra/vmscale
+fi
+cd vmscale
+git pull
