@@ -3,4 +3,4 @@
   hosts: all
   tasks:
      - name: Copy and Execute the script 
-       script: ../clone.sh
+       script: "{{ script_path }}"
