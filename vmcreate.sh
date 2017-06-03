@@ -6,6 +6,8 @@ install_pkgs() {
 	dnf -y groupinstall Virtualization
 }
 
+cd /data/src/vmscale
+
 mkdir -p libvirt_storage
 cd libvirt_storage
 export STORAGE_PATH=`pwd`
