@@ -15,6 +15,7 @@ do
   virsh undefine ${NODE_NAME}
   virsh pool-destroy ${NODE_NAME}_config
   virsh pool-delete ${NODE_NAME}_config
+  virsh pool-undefine ${NODE_NAME}_config
 done
 
 cd ..
@@ -22,5 +23,4 @@ cd ..
 ## Delete the storage pool
 virsh pool-destroy ovn-kubernetes
 virsh pool-delete ovn-kubernetes
-virsh pool-destroy libvirt_storage
-virsh pool-delete libvirt_storage
+virsh pool-undefine ovn-kubernetes
