@@ -14,6 +14,7 @@ do
   virsh destroy ${NODE_NAME}
   virsh undefine ${NODE_NAME}
   virsh pool-destroy ${NODE_NAME}_config
+  rm -rf ${NODE_NAME}*
   virsh pool-delete ${NODE_NAME}_config
   virsh pool-undefine ${NODE_NAME}_config
 done
