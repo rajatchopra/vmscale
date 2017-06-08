@@ -1,0 +1,5 @@
+inventory/*.rdu.openstack.engineering.redhat.com
+inventory/local_hosts
+libvirt_storage
+playbooks/*.retry
+

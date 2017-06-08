@@ -1,0 +1,19 @@
+[Unit]
+Description=OvnKube Node
+Documentation=https://github.com/openvswitch/ovn-kubernetes
+
+[Service]
+Type=notify
+EnvironmentFile=/etc/sysconfig/ovnkube-node
+Environment=GOTRACEBACK=crash
+ExecStart=/usr/bin/ovnkube --init-node ${NODE_NAME} --ca-cert ${CA_CERT_PATH} --token ${TOKEN} --apiserver ${KUBE_API_SERVER}
+LimitNOFILE=65536
+LimitCORE=infinity
+WorkingDirectory=/var/lib/origin/
+SyslogIdentifier=origin-node
+Restart=always
+RestartSec=5s
+OOMScoreAdjust=-999
+
+[Install]
+WantedBy=multi-user.target
