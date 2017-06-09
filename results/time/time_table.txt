@@ -1,0 +1,4 @@
+
+time to create 100 pods: 15 seconds
+time to create 1000 pods when 100 pods are existing: 8m 19s
+

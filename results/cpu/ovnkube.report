@@ -1,0 +1,37 @@
+# ========
+# captured on: Fri Jun  9 00:00:39 2017
+# hostname : b09-h06-r620.rdu.openstack.engineering.redhat.com
+# os release : 3.10.0-514.el7.x86_64
+# perf version : 3.10.0-514.el7.x86_64.debug
+# arch : x86_64
+# nrcpus online : 24
+# nrcpus avail : 24
+# cpudesc : Intel(R) Xeon(R) CPU E5-2620 0 @ 2.00GHz
+# cpuid : GenuineIntel,6,45,7
+# total memory : 65758316 kB
+# cmdline : /usr/bin/perf record -F 99 -p 6104 
+# event : name = cycles:pp, , size = 112, { sample_period, sample_freq } = 99, sample_type = IP|TID|TIME|PERIOD, disabled = 1, inherit = 1, mmap = 
+# HEADER_CPU_TOPOLOGY info available, use -I to display
+# HEADER_NUMA_TOPOLOGY info available, use -I to display
+# pmu mappings: intel_bts = 6, cpu = 4, software = 1, power = 7, uncore_pcu = 23, tracepoint = 2, uncore_imc_0 = 9, uncore_imc_1 = 10, uncore_imc_2
+# HEADER_CACHE info available, use -I to display
+# ========
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 876  of event 'cycles:pp'
+# Event count (approx.): 8522724651
+#
+# Overhead       Samples  Command  Shared Object      Symbol                                                                                       
+# ........  ............  .......  .................  .............................................................................................
+#
+    11.55%            12  ovnkube  ovnkube            [.] encoding/json.nextValue
+     8.76%            12  ovnkube  ovnkube            [.] encoding/json.stateInString
+     4.78%             3  ovnkube  ovnkube            [.] github.com/openvswitch/ovn-kubernetes/go-controller/vendor/github.com/ugorji/go/codec.(*j
+     4.68%             3  ovnkube  ovnkube            [.] github.com/openvswitch/ovn-kubernetes/go-controller/vendor/github.com/ugorji/go/codec.(*b
+     4.22%             4  ovnkube  ovnkube            [.] runtime.retake
+     4.02%             9  ovnkube  ovnkube            [.] encoding/json.stateEndValue
+     3.94%             2  ovnkube  ovnkube            [.] github.com/openvswitch/ovn-kubernetes/go-controller/vendor/github.com/ugorji/go/codec.(*j
+     3.22%             1  ovnkube  [kernel.kallsyms]  [k] poll_select_copy_remaining
+
