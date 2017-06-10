@@ -1,0 +1,37 @@
+[root@b09-h06-r620 results]# oc get pods | wc -l
+1002
+[root@b09-h06-r620 results]# oc get pods -o wide | head
+NAME                    READY     STATUS    RESTARTS   AGE       IP             NODE
+caddy-docker-rc-00r4k   1/1       Running   0          18m       11.11.173.6    172.16.4.13
+caddy-docker-rc-0126t   1/1       Running   0          18m       11.11.1.8      172.16.2.2
+caddy-docker-rc-017n1   1/1       Running   0          22h       11.11.177.3    172.16.1.2
+caddy-docker-rc-048mx   1/1       Running   0          21h       11.11.208.4    172.16.1.16
+caddy-docker-rc-06wj4   1/1       Running   0          18m       11.11.204.8    172.16.1.5
+caddy-docker-rc-09g8d   1/1       Running   0          18m       11.11.19.5     172.16.1.6
+caddy-docker-rc-09m8j   1/1       Running   0          18m       11.11.181.5    172.16.2.10
+caddy-docker-rc-09mp4   1/1       Running   0          18m       11.11.187.8    172.16.4.22
+caddy-docker-rc-0c8t9   1/1       Running   0          22h       11.11.148.3    172.16.4.27
+[root@b09-h06-r620 results]# oc rsh caddy-docker-rc-09mp4
+/srv $ ping 11.11.148.3
+PING 11.11.148.3 (11.11.148.3): 56 data bytes
+64 bytes from 11.11.148.3: seq=0 ttl=63 time=1010.128 ms
+64 bytes from 11.11.148.3: seq=1 ttl=63 time=9.895 ms
+64 bytes from 11.11.148.3: seq=2 ttl=63 time=1107.235 ms
+64 bytes from 11.11.148.3: seq=3 ttl=63 time=1170.066 ms
+64 bytes from 11.11.148.3: seq=4 ttl=63 time=1183.286 ms
+64 bytes from 11.11.148.3: seq=5 ttl=63 time=1193.582 ms
+64 bytes from 11.11.148.3: seq=6 ttl=63 time=746.933 ms
+64 bytes from 11.11.148.3: seq=7 ttl=63 time=800.246 ms
+64 bytes from 11.11.148.3: seq=8 ttl=63 time=1199.456 ms
+64 bytes from 11.11.148.3: seq=9 ttl=63 time=1130.703 ms
+64 bytes from 11.11.148.3: seq=10 ttl=63 time=1178.375 ms
+64 bytes from 11.11.148.3: seq=11 ttl=63 time=1054.429 ms
+64 bytes from 11.11.148.3: seq=12 ttl=63 time=1123.764 ms
+64 bytes from 11.11.148.3: seq=13 ttl=63 time=1149.340 ms
+64 bytes from 11.11.148.3: seq=14 ttl=63 time=1164.183 ms
+64 bytes from 11.11.148.3: seq=15 ttl=63 time=1164.738 ms
+^C
+--- 11.11.148.3 ping statistics ---
+17 packets transmitted, 16 packets received, 5% packet loss
+round-trip min/avg/max = 9.895/1024.147/1199.456 ms
+
