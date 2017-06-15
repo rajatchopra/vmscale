@@ -2,7 +2,7 @@
 
 #rm -f /tmp/output.txt
 
-ip=$(sudo ip a s eth1 | grep 172 | tr -s " "| cut -d " " -f 3 | cut -d "/" -f 1)
+ip=$(sudo ip a s | grep -v k8s | grep 172.16 | tr -s " "| cut -d " " -f 3 | cut -d "/" -f 1)
 #echo $ip >> /tmp/output.txt
 
 sudo cp /openshift.local.config/node/ca.crt /etc/openvswitch/k8s-ca.crt

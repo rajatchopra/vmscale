@@ -1,0 +1,6 @@
+---
+- name: Transfer and execute a script.
+  hosts: small_cluster
+  tasks:
+     - name: Copy and Execute the script 
+       script: "{{ script_path }}"
