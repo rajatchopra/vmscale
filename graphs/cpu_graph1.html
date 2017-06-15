@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+		['Time', 'CPU'],
+[22542, 50.75],
+[22543, 50.75],
+[22544, 50.50],
+[22545, 50.00],
+[22546, 50.00],
+[22547, 50.00],
+[22548, 50.25],
+[22549, 50.25],
+[22550, 50.75],
+[22551, 50.25],
+[22552, 51.00],
+[22553, 50.50],
+[22554, 50.50],
+[22555, 50.00],
+[22556, 50.75],
+[22557, 50.00],
+[22558, 50.75],
+[22559, 50.00]
+        ]);
+
+        var options = {
+          title: 'Pod Creation time performance',
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
+</html>
