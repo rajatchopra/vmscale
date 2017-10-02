@@ -2,6 +2,8 @@
 
 NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-4}
 
+PROJECT_NAME=${PROJECT_NAME:-ovn-kubernetes}
+
 cd /data/src/vmscale
 mkdir -p libvirt_storage
 cd libvirt_storage
@@ -22,6 +24,6 @@ done
 cd ..
 
 ## Delete the storage pool
-virsh pool-destroy ovn-kubernetes
-virsh pool-delete ovn-kubernetes
-virsh pool-undefine ovn-kubernetes
+virsh pool-destroy ${PROJECT_NAME}
+virsh pool-delete ${PROJECT_NAME}
+virsh pool-undefine ${PROJECT_NAME}
