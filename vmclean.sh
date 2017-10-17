@@ -12,7 +12,7 @@ export STORAGE_PATH=`pwd`
 MACHINE_PREFIX=`hostname`
 for i in `seq 1 ${NUM_VMS_PER_MACHINE}`
 do
-  NODE_NAME=${MACHINE_PREFIX}_${i}
+  NODE_NAME=${MACHINE_PREFIX}-${i}
   virsh destroy ${NODE_NAME}
   virsh undefine ${NODE_NAME}
   virsh pool-destroy ${NODE_NAME}_config
