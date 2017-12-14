@@ -1,0 +1,90 @@
+# Create an OSEv3 group that contains the masters and nodes groups
+# NOTE: This is only verified to work with 1 master and 1 etcd 
+[OSEv3:children]
+masters
+nodes
+
+[localhost]
+127.0.0.1
+
+[etcd]
+netdev72-1a
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+# SSH user, this user should allow ssh based auth without requiring a password
+ansible_ssh_user=root
+openshift_auth_type=allowall
+
+oreg_url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-${component}:${version}
+openshift_docker_additional_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888,registry.ops.openshift.com
+openshift_docker_insecure_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888,registry.ops.openshift.com
+
+# If ansible_ssh_user is not root, ansible_sudo must be set to true
+#ansible_sudo=true
+
+# OCP/OSE puddle
+#Version 3.7
+openshift_additional_repos=[{'id': 'aos37-playbook-rpm', 'name': 'aos37-playbook-rpm', 'baseurl': 'http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.7/latest/x86_64/os/', 'enabled': 1, 'gpgcheck': 0}]
+
+
+# Allow all auth
+openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
+
+# kublet args
+# openshift_node_kubelet_args={'max-pods':['4096']}
+
+# Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
+# os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+os_sdn_network_plugin_name='cni'
+
+deployment_type=openshift-enterprise
+
+# host group for masters
+[masters]
+netdev72-1a openshift_hostname=netdev72-1.example.com openshift_ip=10.254.72.1
+
+# host group for nodes, includes region info
+[nodes]
+netdev72-1a openshift_hostname=netdev72-1.example.com openshift_ip=10.254.72.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev72-2a openshift_hostname=netdev72-2.example.com openshift_ip=10.254.72.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev72-3a openshift_hostname=netdev72-3.example.com openshift_ip=10.254.72.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev72-4a openshift_hostname=netdev72-4.example.com openshift_ip=10.254.72.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev72-5a openshift_hostname=netdev72-5.example.com openshift_ip=10.254.72.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev73-1a openshift_hostname=netdev73-1.example.com openshift_ip=10.254.73.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev73-2a openshift_hostname=netdev73-2.example.com openshift_ip=10.254.73.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev73-3a openshift_hostname=netdev73-3.example.com openshift_ip=10.254.73.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev73-4a openshift_hostname=netdev73-4.example.com openshift_ip=10.254.73.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev73-5a openshift_hostname=netdev73-5.example.com openshift_ip=10.254.73.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev74-1a openshift_hostname=netdev74-1.example.com openshift_ip=10.254.74.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev74-2a openshift_hostname=netdev74-2.example.com openshift_ip=10.254.74.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev74-3a openshift_hostname=netdev74-3.example.com openshift_ip=10.254.74.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev74-4a openshift_hostname=netdev74-4.example.com openshift_ip=10.254.74.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev74-5a openshift_hostname=netdev74-5.example.com openshift_ip=10.254.74.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev75-1a openshift_hostname=netdev75-1.example.com openshift_ip=10.254.75.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev75-2a openshift_hostname=netdev75-2.example.com openshift_ip=10.254.75.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev75-3a openshift_hostname=netdev75-3.example.com openshift_ip=10.254.75.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev75-4a openshift_hostname=netdev75-4.example.com openshift_ip=10.254.75.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev75-5a openshift_hostname=netdev75-5.example.com openshift_ip=10.254.75.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev76-1a openshift_hostname=netdev76-1.example.com openshift_ip=10.254.76.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev76-2a openshift_hostname=netdev76-2.example.com openshift_ip=10.254.76.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev76-3a openshift_hostname=netdev76-3.example.com openshift_ip=10.254.76.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev76-4a openshift_hostname=netdev76-4.example.com openshift_ip=10.254.76.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev76-5a openshift_hostname=netdev76-5.example.com openshift_ip=10.254.76.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev77-1a openshift_hostname=netdev77-1.example.com openshift_ip=10.254.77.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev77-2a openshift_hostname=netdev77-2.example.com openshift_ip=10.254.77.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev77-3a openshift_hostname=netdev77-3.example.com openshift_ip=10.254.77.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev77-4a openshift_hostname=netdev77-4.example.com openshift_ip=10.254.77.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev77-5a openshift_hostname=netdev77-5.example.com openshift_ip=10.254.77.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev78-1a openshift_hostname=netdev78-1.example.com openshift_ip=10.254.78.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev78-2a openshift_hostname=netdev78-2.example.com openshift_ip=10.254.78.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev78-3a openshift_hostname=netdev78-3.example.com openshift_ip=10.254.78.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev78-4a openshift_hostname=netdev78-4.example.com openshift_ip=10.254.78.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev78-5a openshift_hostname=netdev78-5.example.com openshift_ip=10.254.78.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+netdev79-1a openshift_hostname=netdev79-1.example.com openshift_ip=10.254.79.1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+netdev79-2a openshift_hostname=netdev79-2.example.com openshift_ip=10.254.79.2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+netdev79-3a openshift_hostname=netdev79-3.example.com openshift_ip=10.254.79.3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+netdev79-4a openshift_hostname=netdev79-4.example.com openshift_ip=10.254.79.4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+netdev79-5a openshift_hostname=netdev79-5.example.com openshift_ip=10.254.79.5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+
+

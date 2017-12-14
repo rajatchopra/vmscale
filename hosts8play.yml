@@ -1,0 +1,35 @@
+---
+
+- name: Install tasks for 8 host, 40 node, cluster
+  hosts: cluster
+  user: root
+
+  tasks:
+  - name: clone vmscale
+    git:
+      repo: https://github.com/rajatchopra/vmscale
+      dest: /root/rajatvmscale
+
+  - name: copy user_data
+    template: src=/root/vmscale/user_data dest=/root/rajatvmscale/user_data
+
+  - name: copy vmclean.sh
+    template: src=/root/vmscale/vmclean.sh dest=/root/rajatvmscale/vmclean.sh
+
+  - name: copy vmcreate.sh
+    template: src=/root/vmscale/vmcreate.sh dest=/root/rajatvmscale/vmcreate.sh
+
+  - name: make directory 
+    file:
+      state: directory
+      path: /data/src/vmscale/libvirt_storage
+      mode: 0777
+
+  - name: copy fedora - phil this didn't work, copied by hand
+    template: src=/data/src/vmscale/FEdora-Cloud-Base-27-1.6.x86_64.qcow2 dest=/data/src/vmscale/Fedora-Cloud-Base-27-1.6.x86_64.qcow2
+
+  - name: install Virtualization and start libvirtd
+    shell: dnf -y groupinstall Virtualization
+
+  - name:
+    shell: pip3 install ansible

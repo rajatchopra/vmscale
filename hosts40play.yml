@@ -1,0 +1,200 @@
+---
+- name: Install tasks for 8 host, 40 node, cluster
+  hosts: cluster
+  user: root
+
+  # This set of tasks prepares the VM to be part of the cluster
+  tasks:
+  - name: install pip3 ansible
+    shell: pip3 install ansible
+
+  - name: install packages
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - docker
+      - libselinux-python
+      - openvswitch
+      - openvswitch-ovn-common
+      - openvswitch-ovn-central
+      - openvswitch-ovn-vtep
+      - openvswitch-ovn-docker
+      - openvswitch-ovn-host
+
+# This didn't work... (Just let docker create a file)
+# - name: set up docker storage
+#   shell: /usr/bin/docker-storage-setup
+
+  - name: fix the docker-network file
+    template: src=/root/vmscale/templates/docker-network.j2 dest=/etc/sysconfig/docker-network
+
+  - name: fix the registries-conf file
+    template: src=/root/vmscale/templates/registries-fedora-conf.j2 dest=/etc/containers/registries.conf
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  - name: restart ovn-controller
+    service: name=ovn-controller state=restarted
+
+  - name: copy a file
+    copy: src=/root/vmscale/templates/ovn_k8s.conf.j2 dest=/etc/openvswitch/ovn_k8s.conf
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/bin/ovn-k8s-cni-overlay dest=/usr/bin/ovn-k8s-cni-overlay
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/bin/ovn-k8s-gateway-helper dest=/usr/bin/ovn-k8s-gateway-helper
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/bin/ovn-k8s-util dest=/usr/bin/ovn-k8s-util
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/bin/ovn-k8s-watcher dest=/usr/bin/ovn-k8s-watcher
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/go-controller/_output/go/bin/ovnkube dest=/usr/bin/ovnkube
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/go-controller/_output/go/bin/ovn-kube-util dest=/usr/bin/ovn-kube-util
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/go-controller/_output/go/bin/ovn-k8s-overlay dest=/usr/bin/ovn-k8s-overlay
+  - name: copy a file
+    copy: src=/root/ovn-kubernetes/go-controller/_output/go/bin/ovn-kube-cni-overlay dest=/usr/bin/ovn-kube-cni-overlay
+  - name: copy hosts
+    copy: src=/etc/hosts dest=/etc/hosts
+
+    # copy the ovn-kubernetes/ovn_k8s tree to /usr/bin
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/__init__.py dest=/usr/bin/ovn_k8s/__init__.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/common
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/__init__.py dest=/usr/bin/ovn_k8s/common/__init__.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/config.py dest=/usr/bin/ovn_k8s/common/config.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/exceptions.py dest=/usr/bin/ovn_k8s/common/exceptions.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/kubernetes.py dest=/usr/bin/ovn_k8s/common/kubernetes.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/util.py dest=/usr/bin/ovn_k8s/common/util.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/common/variables.py dest=/usr/bin/ovn_k8s/common/variables.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/modes
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/modes/__init__.py dest=/usr/bin/ovn_k8s/modes/__init__.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/modes/overlay.py dest=/usr/bin/ovn_k8s/modes/overlay.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/processor
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/processor/__init__.py dest=/usr/bin/ovn_k8s/processor/__init__.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/processor/conn_processor.py dest=/usr/bin/ovn_k8s/processor/conn_processor.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/tests
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/tests/__init__.py dest=/usr/bin/ovn_k8s/tests/__init__.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/tests/unit
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/tests/unit/__init__.py dest=/usr/bin/ovn_k8s/tests/unit/__init__.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/tests/unit/test_exceptions.py dest=/usr/bin/ovn_k8s/tests/unit/test_exceptions.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/tests/unit/test_kubernetes.py dest=/usr/bin/ovn_k8s/tests/unit/test_kubernetes.py
+  - name: make a directory
+    file:
+      state: directory
+      path: /usr/bin/ovn_k8s/watcher
+      mode: 0755
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/watcher/__init__.py dest=/usr/bin/ovn_k8s/watcher/__init__.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/watcher/endpoint_watcher.py dest=/usr/bin/ovn_k8s/watcher/endpoint_watcher.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/watcher/pod_watcher.py dest=/usr/bin/ovn_k8s/watcher/pod_watcher.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/watcher/service_watcher.py dest=/usr/bin/ovn_k8s/watcher/service_watcher.py
+  - name: copy ovn_k8s
+    copy: src=/root/ovn-kubernetes/ovn_k8s/watcher/watcher.py dest=/usr/bin/ovn_k8s/watcher/watcher.py
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-k8s-gateway-helper
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-k8s-util
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-k8s-watcher
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovnkube
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-kube-util
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-k8s-overlay
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-kube-cni-overlay
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: file
+      path: /usr/bin/ovn-k8s-cni-overlay
+      mode: 0755
+
+  - name: chmod a file
+    file:
+      state: link
+      src: /usr/bin/ovn_k8s
+      dest: /usr/lib/python2.7/site-packages/ovn_k8s
+
+  - name: iptables 6641
+    shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+  - name: iptables 6642
+    shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+
+  - name: Ensure GENEVE's UDP port isn't firewalled
+    shell: /usr/share/openvswitch/scripts/ovs-ctl --protocol=udp --dport=6081 enable-protocol
+
+
