@@ -1,0 +1,22 @@
+#!/bin/bash
+
+rm -f /tmp/ovn.token /tmp/ovn.apiserver
+
+# Run after oserun to configure and set up ovn 
+
+# get the token and apiserver as needed by ovn node startup
+token=$(ssh netdev72-1a cat /etc/origin/master/ovn.token)
+echo "TOKEN: \"${token}\"" > /tmp/ovn.token
+apiserver=$(ssh netdev72-1a oc config view -o custom-columns=server:clusters[0].cluster.server | grep http)
+echo "APISERVER: \"${apiserver}\"" > /tmp/ovn.apiserver
+master_fqn=$(echo -n ${apiserver} | cut -d "/" -f 3 | cut -d ":" -f 1)
+master_ip=$(grep ${master_fqn} /etc/hosts | gawk '{ print $1 }')
+echo "MASTER_IP: \"${master_ip}\"" >> /tmp/ovn.apiserver
+cluster_cidr=$(ssh netdev72-1a grep cidr /etc/origin/master/master-config.yaml | gawk '{ print $3}')
+echo "CLUSTER_CIDR: \"${cluster_cidr}\"" >> /tmp/ovn.apiserver
+
+# set up the ovn master on the cluster master
+ansible-playbook -i hosts40 ose40post1.yml
+
+ansible-playbook -i hosts40 ose40post2.yml
+

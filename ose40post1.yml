@@ -1,0 +1,37 @@
+---
+- name: Post processing for master
+  hosts: masters
+  user: root
+
+  vars_files:
+  - /tmp/ovn.token
+  - /tmp/ovn.apiserver
+
+  tasks:
+  - name: copy in the sysconfig file
+    template: src=templates/ovnkube-master.sysconfig.j2 dest=/etc/sysconfig/ovn.master
+
+  - name: Configure openshift
+    script: scripts/ovn-setup.sh
+
+  - name: copy in the master ovn script
+    template: src=templates/ovn-kubernetes-master.sh.j2 dest=/usr/bin/ovn-kubernetes-master.sh mode=0755
+
+  - name: copy in the master ovn service
+    template: src=templates/ovn-kubernetes-master.service.j2 dest=/usr/lib/systemd/system/ovn-kubernetes-master.service
+
+  - name: link the service file
+    file:
+      src: /usr/lib/systemd/system/ovn-kubernetes-master.service
+      dest: /etc/systemd/system/ovn-kubernetes-master.service
+      state: link
+
+  - name: reload services
+    systemd: daemon_reload=y
+
+  - name: enable and start ovn master service
+    systemd:
+      name: ovn-kubernetes-master
+      state: started
+      enabled: yes
+

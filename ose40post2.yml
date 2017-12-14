@@ -1,33 +1,40 @@
 ---
-- name: Post processing for master
-  hosts: masters
-  user: root
-
-  tasks:
-  - name: master message
-    debug:
-      msg: this is the master
-
-  - name: Configure openshift
-    script: scripts/ovn-setup.sh
-
-
 - name: Post process for nodes
   hosts: nodes
   user: root
 
-  tasks:
-  - name: node message
-    debug:
-      msg: this is a node
+  # created by external script
+  vars_files:
+  - /tmp/ovn.token
+  - /tmp/ovn.apiserver
 
- 
-#- name: Post install tasks for 8 host, 40 node, cluster
-# hosts: cluster
-# user: root
+  tasks:
+  - name: copy in the sysconfig file
+    template: src=templates/ovnkube-node.sysconfig.j2 dest=/etc/sysconfig/ovn.node
+
+  - name: copy the ovn node script
+    template: src=templates/ovn-kubernetes-node.sh.j2 dest=/usr/bin/ovn-kubernetes-node.sh mode=0755
+
+  - name: copy the service file
+    template: src=templates/ovn-kubernetes-node.service.j2 dest=/usr/lib/systemd/system/ovn-kubernetes-node.service
+
+  - name: link the service file
+    file:
+      src: /usr/lib/systemd/system/ovn-kubernetes-node.service
+      dest: /etc/systemd/system/ovn-kubernetes-node.service
+      state: link
+
+  - name: reload services
+    systemd: daemon_reload=y
+
+  - name: enable and start ovn node service
+    systemd:
+      name: ovn-kubernetes-node
+      state: started
+      enabled: yes
 
   # Once Openshift master and etcd are up configure OVN and bring it up
-  tasks:
+# tasks:
   # start up ovn - this is done after the cluster is installed to get the ca.crt and token
 # The values may not be correct.
 #   --apiserver "https://<master-fqn>:8443

@@ -1,0 +1,15 @@
+[Unit]
+Description=Provision ovn-kubernetes node service
+Requires=atomic-openshift-node.service
+After=atomic-openshift-node.service
+Requires=openvswitch.service
+After=openvswitch.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/sysconfig/ovn.node
+ExecStart=/usr/bin/ovn-kubernetes-node.sh
+
+[Install]
+WantedBy=multi-user.target
+

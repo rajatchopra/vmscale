@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+source /etc/sysconfig/ovn.node
+
+function ovn-kubernetes-node() {
+
+  cat >"/etc/openvswitch/ovn_k8s.conf" <<EOF
+[default]
+k8s_ca_certificate=/etc/origin/node/ca.crt
+EOF
+
+  # Ensure GENEVE's UDP port isn't firewalled
+  /usr/share/openvswitch/scripts/ovs-ctl --protocol=udp --dport=6081 enable-protocol
+
+  echo "Enabling and start ovn-kubernetes node services"
+  /usr/bin/ovnkube \
+	--apiserver "${apiserver}" \
+	--ca-cert "/etc/origin/node/ca.crt" \
+	--token "${token}" \
+	--cluster-subnet "${cluster_cidr}" \
+	--ovn-north-db "tcp://${ovn_master_ip}:6641" \
+	--ovn-south-db "tcp://${ovn_master_ip}:6642" \
+	--init-node `hostname`
+}
+
+#if [[ -n "${OPENSHIFT_OVN_KUBERNETES}" ]]; then
+   ovn-kubernetes-node
+#fi

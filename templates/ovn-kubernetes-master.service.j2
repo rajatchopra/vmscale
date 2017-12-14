@@ -1,0 +1,15 @@
+[Unit]
+Description=ovn-kubernetes master service
+Requires=atomic-openshift-master-api.service
+After=atomic-openshift-master-api.service
+Requires=openvswitch.service
+After=openvswitch.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/sysconfig/ovn.master
+ExecStart=/usr/bin/ovn-kubernetes-master.sh
+
+[Install]
+WantedBy=multi-user.target
+

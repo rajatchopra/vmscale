@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+source /etc/sysconfig/ovn.master
+
+function ovn-kubernetes-master() {
+  echo "Enabling and start ovn-kubernetes master services"
+  /usr/bin/ovnkube \
+	--apiserver "${apiserver}" \
+	--ca-cert "/etc/origin/master/ca.crt" \
+	--token "${token}" \
+	--cluster-subnet "${cluster_cidr}" \
+	--ovn-north-db "tcp://${ovn_master_ip}:6641" \
+	--ovn-south-db "tcp://${ovn_master_ip}:6642" \
+	--init-master `hostname` \
+	--net-controller
+}
+
+#if [[ -n "${OPENSHIFT_OVN_KUBERNETES}" ]]; then
+  ovn-kubernetes-master
+#fi
