@@ -364,10 +364,23 @@ Initialize the master and run the main controller
 ovnkube --init-master <master-host-name> \
         --ca-cert <path to the cacert file> \
         --token <token string for authentication with kube apiserver> \
-        --apiserver <url to the kube apiserver e.g. https://10.11.12.13.8443> \
-        --cluster-subnet <cidr representing the global pod network e.g. 192.168.0.0/16> \
+        --apiserver <url to the kube apiserver e.g. https://netdev72-1.example.com:8443> \
+        --cluster-subnet <cidr representing the global pod network e.g. 10.128.0.0/14> \
+        --ovn-north-db "tcp://10.254.72.1:6641"
+        --ovn-south-db "tcp://10.254.72.1:6642"
         --net-controller
 ```
+e.g.,
+ovnkube
+--init-master netdev72-1.example.com
+--ca-cert ca.crt
+--token "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im92bi10b2tlbi1yczRzYyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJvdm4iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI3YzY4ZjA5NS1kNmM1LTExZTctYjNmYy01MjU0MDBjNDQ2MTciLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpvdm4ifQ.grBISlwN6JYy_RXqm-YruTJTQG_RSGDwSdWs24t0waueR259r2XSCPKdYslfA3HQ04IzLVdt6Yh2SA3mF_KAmo7oFnyYjR-ZWQUuLUnqOxKJu-Gi1ANQUqgbGlhrBYsOmGCLuUoOH9H1Ar7k-kH8lVe6fVNDArGu1P38SY8vejCOzkK_Yb6oHBujl4Xr2qiHR5tIoQyOgNe6I1L0C7WYVCw_DYNp-sGBnGJfGj3SI1YOHUU37iMXcXXc0nxFqa8YGyJdGGCkzalZ57DNVB9rghO5OvKbzXIUfP-R2M6ItqL8NHZuqgoJgNuOtIPlQhZh9tE-dlGrKAjkHcI2nbUMcQ"
+--apiserver https://netdev72-1.example.com:8443
+--cluster-subnet 10.128.0.0/14
+--ovn-north-db "tcp://10.254.72.1:6641"
+--ovn-south-db "tcp://10.254.72.1:6642"
+--net-controller
+
 
 With the above the master ovnkube controller will initialize the central
 master logical router and establish the watcher loops for the following:
@@ -385,9 +398,26 @@ Initialize a newly added node for the OVN network
 ovnkube --init-node <name of the node as identified in kubernetes> \
         --ca-cert <path to the cacert file> \
         --token <token string for authentication with kube apiserver> \
-        --apiserver <url to the kube apiserver e.g. https://10.11.12.13.8443>
+        --apiserver <url to the kube apiserver e.g. https://netdev72-1.example.com:8443> \
+        --ovn-north-db "tcp://10.254.72.1:6641" \
+        --ovn-south-db "tcp://10.254.72.1:6642"
 ```
+#   --apiserver "https://<master-fqn>:8443
+#   --ca-cert "/etc/origin/node/ca.crt"
+#   --token=<cat /etc/origin/master/ovn.token>
+#   --ovn-north-db "tcp://<master-ip>:6641
+#   --ovn-south-db "tcp://<node-ip>:6642
+#   --init-node `hostname`
 
+
+e.g.,
+ovnkube
+--init-node `hostname`
+--ca-cert "/etc/origin/node/ca.crt"
+--token "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6Im92bi10b2tlbi1yczRzYyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJvdm4iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI3YzY4ZjA5NS1kNmM1LTExZTctYjNmYy01MjU0MDBjNDQ2MTciLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6ZGVmYXVsdDpvdm4ifQ.grBISlwN6JYy_RXqm-YruTJTQG_RSGDwSdWs24t0waueR259r2XSCPKdYslfA3HQ04IzLVdt6Yh2SA3mF_KAmo7oFnyYjR-ZWQUuLUnqOxKJu-Gi1ANQUqgbGlhrBYsOmGCLuUoOH9H1Ar7k-kH8lVe6fVNDArGu1P38SY8vejCOzkK_Yb6oHBujl4Xr2qiHR5tIoQyOgNe6I1L0C7WYVCw_DYNp-sGBnGJfGj3SI1YOHUU37iMXcXXc0nxFqa8YGyJdGGCkzalZ57DNVB9rghO5OvKbzXIUfP-R2M6ItqL8NHZuqgoJgNuOtIPlQhZh9tE-dlGrKAjkHcI2nbUMcQ"
+--apiserver "https://netdev72-1.example.com:8443"
+--ovn-north-db "tcp://10.254.72.1:6641"
+--ovn-south-db "tcp://10.254.72.1:6642"
 
 Verify its working
 # ssh into the master netdev72-1

@@ -1,5 +1,9 @@
 [cluster:children]
 nodes
+masters
+
+[masters:children]
+osehost72_1
 
 [nodes:children]
 osehost72_1
