@@ -1,0 +1,34 @@
+# The selected machine from beaker is
+# wsfd-netdev31.ntdv.lab.eng.bos.redhat.com
+# there are 5 VMs set up on the host.
+# /etc/hosts has the ip name and fqn
+
+[cluster:children]
+nodes
+masters
+
+[masters:children]
+osehost31_1
+
+[nodes:children]
+osehost31_1
+osehost31_2
+osehost31_3
+osehost31_4
+osehost31_5
+
+[osehost31_1]
+netdev31-1
+
+[osehost31_2]
+netdev31-2
+
+[osehost31_3]
+netdev31-3
+
+[osehost31_4]
+netdev31-4
+
+[osehost31_5]
+netdev31-5
+

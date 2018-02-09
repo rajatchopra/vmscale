@@ -7,7 +7,7 @@ After=openvswitch.service
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/sysconfig/ovn.master
+EnvironmentFile=-/etc/sysconfig/ovn-kubernetes
 ExecStart=/usr/bin/ovn-kubernetes-master.sh
 
 [Install]

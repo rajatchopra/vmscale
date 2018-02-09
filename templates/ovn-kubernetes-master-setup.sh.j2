@@ -1,0 +1,78 @@
+#!/bin/bash
+
+#  /etc/sysconfig/ovn-kubernetes must be present for
+# for the ovn-kubernetes-master service to start
+out_file=/etc/sysconfig/ovn-kubernetes
+master_file=/etc/origin/master/master-config.yaml
+
+function get_apiserver {
+  echo "apiserver=https://$(hostname):8443" >> ${out_file}
+}
+
+function get_ovn {
+  # creating the token file is the last step
+  # when it is there ovn is setup
+  if [ ! -f /etc/origin/master/ovn.token ]
+  then
+    oc get serviceaccount ovn > /dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+      oc create serviceaccount ovn
+      oc adm policy add-cluster-role-to-user cluster-admin -z ovn
+      oc adm policy add-scc-to-user anyuid -z ovn
+    fi
+    oc sa get-token ovn  > /etc/origin/master/ovn.token
+  fi
+}
+
+function get_token {
+  echo "token=\"$(cat /etc/origin/master/ovn.token)\"" >> ${out_file}
+}
+
+function get_cluster_cidr {
+  echo "cluster_cidr=$(gawk '/clusterNetworkCIDR:/{ print $2 }' ${master_file} )" >> ${out_file}
+}
+
+function get_ovn_master_ip {
+  host=$(hostname)
+  echo "ovn_master_ip=$(host ${host} | gawk '{print $4 }')" >> ${out_file}
+}
+
+get_ovn
+
+if [ -f ${out_file} ] 
+then
+  source ${out_file}
+else
+  get_apiserver
+  get_token
+  get_cluster_cidr
+  get_ovn_master_ip
+  exit 0
+fi
+
+echo test apiserver
+if [ -z ${apiserver} ]
+then
+  get_apiserver
+fi
+
+echo test token
+if [ -z ${token} ]
+then
+  get_token
+fi
+
+echo test cluster_cidr
+if [ -z ${cluster_cidr} ]
+then
+  get_cluster_cidr
+fi
+
+echo test ovn_master_ip
+if [ -z ${ovn_master_ip} ]
+then
+  get_ovn_master_ip
+fi
+
+exit 0
