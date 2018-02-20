@@ -1,0 +1,112 @@
+---
+# This playbook sets up the 5 VMs to be part of a cluster.
+
+- name: Install tasks for 1 host, 5 node, cluster
+  hosts: cluster
+  user: root
+
+  # This set of tasks prepares the VM (node) to be part of the cluster
+  # openvswitch must be 2.8.1 or higher
+  # openvswitch-ovn-kubernetes-0.1.0
+  tasks:
+  - name: install pip3 ansible
+    shell: pip3 install ansible
+
+  - name: install packages
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - yum
+      - python2-dbus
+      - python3-dbus
+      - firewalld
+      - NetworkManager
+      - docker
+      - libselinux-python
+      - openvswitch
+      - openvswitch-ovn-common
+      - openvswitch-ovn-central
+      - openvswitch-ovn-vtep
+      - openvswitch-ovn-docker
+      - openvswitch-ovn-host
+      - openvswitch-ovn-kubernetes
+
+# This didn't work... (Just let docker create a file)
+# - name: set up docker storage
+#   shell: /usr/bin/docker-storage-setup
+
+  - name: fix the docker-network file
+    template: src=/root/vmscale/templates/docker-network.j2 dest=/etc/sysconfig/docker-network
+
+  - name: fix the registries-conf file
+    template: src=/root/vmscale/templates/registries-fedora-conf.j2 dest=/etc/containers/registries.conf
+
+# HACK HACK - bz 1508495 work around
+  - name: hack1
+    template: src=/root/vmscale/templates/ovs-vswitchd.service.j2 dest=/usr/lib/systemd/system/ovs-vswitchd.service
+
+  - name: hack2
+    template: src=/root/vmscale/templates/ovsdb-server.service.j2  dest=/usr/lib/systemd/system/ovsdb-server.service
+
+  - name: hack3
+    template: src=/root/vmscale/templates/openvswitch.j2 dest=/etc/sysconfig/openvswitch
+
+  - name: hack4
+    shell: systemctl daemon-reload
+# HACK HACK - bz 1508495 workaround
+
+  - name: start ovs
+    service: name=ovsdb-server state=restarted
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  - name: restart NetworkManager
+    service: name=NetworkManager state=restarted
+
+  - name: copy hosts
+    copy: src=/etc/hosts dest=/etc/hosts
+
+# - name: copy openshift_additional.repo
+#   copy: src=/etc/yum.repos.d/openshift_additional.repo dest=/etc/yum.repos.d/openshift_additional.repo
+
+  - name: iptables 6641
+#   shell: iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+    shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+
+  - name: iptables 6642
+#   shell: iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+    shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+
+  - name: Ensure GENEVE's UDP port isn't firewalled
+    shell: /usr/share/openvswitch/scripts/ovs-ctl --protocol=udp --dport=6081 enable-protocol
+
+  - name: copy a file
+    copy: src=/root/vmscale/templates/ovn_k8s.conf.j2 dest=/etc/openvswitch/ovn_k8s.conf
+
+  - name: restart ovn-controller
+    service: name=ovn-controller state=restarted
+
+# service setup and control
+# (temp until this is in the rpm)
+  - name: master service
+    template: src=ovn-kubernetes-master.service.j2  dest=/usr/lib/systemd/system/ovn-kubernetes-master.service
+  - name: master script
+    template: src=ovn-kubernetes-master.sh.j2  dest=/usr/bin/ovn-kubernetes-master.sh
+  - name: make excutable
+    file:
+      path: /usr/bin/ovn-kubernetes-master.sh
+      mode: 0755
+  - name: node service
+    template: src=ovn-kubernetes-node.service.j2  dest=/usr/lib/systemd/system/ovn-kubernetes-node.service
+  - name: node script
+    template: src=ovn-kubernetes-node.sh.j2  dest=/usr/bin/ovn-kubernetes-node.sh
+  - name: make excutable
+    file:
+      path: /usr/bin/ovn-kubernetes-node.sh
+      mode: 0755
+# - name: ovn-kubernetes sysconfig
+#   template: src=templates/ovn-kubernetes.sysconfig.j2  dest=/etc/sysconfig/ovn-kubernetes
+  - name: restart ovn
+    service: name=ovn-kubernetes-node state=restarted
+

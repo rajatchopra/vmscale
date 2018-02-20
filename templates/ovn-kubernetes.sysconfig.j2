@@ -1,0 +1,32 @@
+# ovn-kubernetes config - all nodes and masters
+
+# This file configures the ovn cni plugin. When completed or changed
+# the file must be copied to each ovn-master and ovn-node and the
+# ovn-kubernetes-master and ovn-kubernetes-node daemons must be restarted.
+
+# This file can be created from information on the Openshift master
+# after Openshift is installed an the master is running.
+# Login to the openshift master and do the following commands once 
+# to set up openshift for ovn.
+
+# oc create serviceaccount ovn
+# oc adm policy add-cluster-role-to-user cluster-admin -z ovn
+# oc adm policy add-scc-to-user anyuid -z ovn
+# oc sa get-token ovn  > /etc/origin/master/ovn.token
+
+# Edit this file with the following:
+# apiserver - this contains the URL of the api server on master
+# apiserver=https://<IP_API_SERVER_HOST_NAME>:8443
+
+# token - this contains the contents of /etc/origin/master/ovn.token
+# token="eyJhbGciOiJSUzI1NiIsInR ....... Y991KQNp-EzGjUcAxg-XCBw"
+
+# cluster_cidr - this contains the clusterNetworkCIDR from /etc/origin/master/master-config.yaml
+# cluster_cidr=10.128.0.0/14
+
+# ovn_master_ip - this contains the IP addres of the ovn master
+# ovn_master_ip=192.168.122.103
+
+# copy the file to each ovn-node and ovn-master and restart
+# ovn-kubernetes-master.service and ovn-kubernetes-node.service
+

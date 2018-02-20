@@ -1,0 +1,84 @@
+# Create an OSEv3 group that contains the masters and nodes groups
+# This is for 1 host and 5 VMs (netdev31 with 5 VMs)
+# This is only verified to work with 1 master and 1 etcd 
+
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+
+# SSH user, this user should allow ssh based auth without requiring a password
+ansible_ssh_user=root
+openshift_auth_type=allowall
+openshift_clock_enabled=true
+openshift_deployment_type=openshift-enterprise
+openshift_use_dnsmasq=true
+skip_verison=true
+openshift_release=3.9
+
+oreg_url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888/openshift3/ose-${component}:${version}
+openshift_docker_additional_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888,registry.ops.openshift.com
+openshift_docker_insecure_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888,registry.ops.openshift.com
+
+# If ansible_ssh_user is not root, ansible_sudo must be set to true
+#ansible_sudo=true
+
+# OCP/OSE puddle
+#Version 3.9
+openshift_additional_repos=[{'id': 'aos39-playbook-rpm', 'name': 'aos39-playbook-rpm', 'baseurl': 'http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.9/latest/x86_64/os/', 'enabled': 1, 'gpgcheck': 0}]
+
+
+# Allow all auth
+openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
+
+# kublet args
+# openshift_node_kubelet_args={'max-pods':['4096']}
+
+# Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
+# os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+# Configure the cni-ovn plugin
+os_sdn_network_plugin_name='cni'
+
+
+# get ip/host for VMs
+# virsh net-list
+# virsh net-dhcp-leases default
+# ssh <ip> hostname
+# put IP name fqn into /etc/hosts
+# 
+
+[etcd]
+netdev31-1
+
+# host group for masters
+[masters]
+netdev31-1
+# openshift_hostname=netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com openshift_ip=192.168.122.103
+
+# host group for nodes, includes region info
+[nodes]
+netdev31-1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com openshift_ip=192.168.122.103 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+
+netdev31-2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com openshift_ip=192.168.122.193 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+
+netdev31-3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com openshift_ip=192.168.122.137 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+
+netdev31-4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com openshift_ip=192.168.122.38 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+
+netdev31-5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com openshift_ip=192.168.122.135 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
+
+#192.168.122.103 netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
+#192.168.122.193 netdev31-2 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com
+#192.168.122.137 netdev31-3 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com
+#192.168.122.38  netdev31-4 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com
+#192.168.122.135 netdev31-5 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com
+
+

@@ -4,13 +4,13 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source /etc/sysconfig/ovn.node
+source /etc/sysconfig/ovn-kubernetes
 
 function ovn-kubernetes-node() {
 
   cat >"/etc/openvswitch/ovn_k8s.conf" <<EOF
 [default]
-k8s_ca_certificate=/etc/origin/node/ca.crt
+k8s-ca-certificate=/etc/origin/node/ca.crt
 EOF
 
   # Ensure GENEVE's UDP port isn't firewalled

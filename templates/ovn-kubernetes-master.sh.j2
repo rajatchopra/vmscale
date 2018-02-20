@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source /etc/sysconfig/ovn.master
+source /etc/sysconfig/ovn-kubernetes
 
 function ovn-kubernetes-master() {
   echo "Enabling and start ovn-kubernetes master services"

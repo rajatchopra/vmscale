@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Do the OSE install from a puddle
+# This requires python3
+
+# This verifies that the VMs are properly provisioned to install the cluster
+#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/byo/openshift_facts.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+
+# this should install the OSE cluster
+#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+
+# Install the master - if deploy_cluster.yml failed
+# ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-master/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+
+# Install the nodes - if deploy_cluster.yml failed
+ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-node/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+
+# Uninstall the cluster
+#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/adhoc/uninstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+

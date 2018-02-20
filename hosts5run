@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# this playbook sets up the VMs to be part of a cluster.
+ansible-playbook -i hosts5 hosts5play.yml
+

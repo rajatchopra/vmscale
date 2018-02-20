@@ -1,11 +1,26 @@
 #!/bin/bash
 
+# vmscale is expected to be cloned in /root
+# libvirt_storage created in the clone (/root/vmscale/libvirt_storage)
+# Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 is current as of this time.
+# it changes daily.
+#
+# This is done on fedora rawhide Server because it has ovs-2.8.1 and
+# openvswitch-ovn-kubernetesi0.1.0 which are both required. It also has a 
+# Server has a small /root that can be expanded to the rest of the disk for
+# libvirt_storage for the VMs.
+#
+# NOTE:
+# At some point RHEL will have the needed parts and this will be obsolete. 
+# At present ovs-2.74 is in fast datapath
+# and openvswitch-ovn-kubernetes-0.1.0 is in the ocp puddle.
+
 NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
 
 
 ## 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-INSTALL_DIR=${INSTALL_DIR:-/data/src/vmscale}
+INSTALL_DIR=${INSTALL_DIR:-/root/vmscale}
 PROJECT_NAME=${PROJECT_NAME:-ovn-kubernetes}
 STORAGE_DIR=${STORAGE_DIR:-libvirt_storage}
 
@@ -26,8 +41,11 @@ cd ${STORAGE_PATH}
   #wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
   #unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
 #fi
-if [ ! -f Fedora-Cloud-Base-27-1.6.x86_64.qcow2 ]; then
-  wget https://pubmirror2.math.uh.edu/fedora-buffet/fedora/linux/releases/27/CloudImages/x86_64/images/Fedora-Cloud-Base-27-1.6.x86_64.qcow2
+#if [ ! -f Fedora-Cloud-Base-27-1.6.x86_64.qcow2 ]; then
+#  wget https://pubmirror2.math.uh.edu/fedora-buffet/fedora/linux/releases/27/CloudImages/x86_64/images/Fedora-Cloud-Base-27-1.6.x86_64.qcow2
+#fi
+if [ ! -f Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 ]; then
+  wget https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2
 fi
 
 ## Create a storage pool
@@ -58,7 +76,8 @@ do
   sed -i s/NODE_NAME/${NODE_NAME}/ meta-data
   genisoimage -output ${NODE_NAME}_cloud-init.iso -volid cidata -joliet -rock user-data meta-data
   #virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/CentOS-7-x86_64-GenericCloud.qcow2 --backing-vol-format qcow2
-  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-27-1.6.x86_64.qcow2 --backing-vol-format qcow2
+  #virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-27-1.6.x86_64.qcow2 --backing-vol-format qcow2
+  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 50G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 --backing-vol-format qcow2
   virt-install --connect qemu:///system --ram 18432 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${STORAGE_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${STORAGE_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
   #virsh attach-interface --domain ${NODE_NAME} --type bridge --source rcbr0 --config --live
   popd
