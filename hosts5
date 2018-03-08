@@ -4,11 +4,14 @@
 # /etc/hosts has the ip name and fqn
 
 [cluster:children]
-nodes
 masters
+nodes
 
 [masters:children]
-osehost31_1
+osehost31_1master
+
+[osehost31_1master]
+netdev31-1
 
 [nodes:children]
 osehost31_1

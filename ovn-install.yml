@@ -1,0 +1,41 @@
+---
+# This playbook installs OVN rpms on the cluster
+
+- name: Install OVN rpms
+  hosts: nodes
+
+  tasks:
+  - name: install OVN-kubernetes on nodes
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - openvswitch-ovn-common
+      - openvswitch-ovn-central
+      - openvswitch-ovn-vtep
+      - openvswitch-ovn-host
+      - openvswitch-ovn-kubernetes
+      - openvswitch-ovn-kubernetes-node
+
+  - name: enable ovn-controller
+    shell: systemctl enable ovn-controller
+
+  - name: start ovn-controller
+    service: name=ovn-controller state=restarted
+
+
+- name: Install OVN-master rpm
+  hosts: masters
+
+  tasks:
+  - name: install OVN-master
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - openvswitch-ovn-kubernetes-master
+
+  - name: enable ovn-northd
+    shell: systemctl enable ovn-northd
+
+  - name: start ovn-northd
+    service: name=ovn-northd state=restarted
+

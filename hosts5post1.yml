@@ -1,0 +1,85 @@
+---
+# This playbook sets up the 5 VMs to be part of a cluster.
+# it is run after the cluster install
+
+- name: Install tasks for 1 host, 5 node, cluster
+  hosts: cluster
+  user: root
+
+  # the ose install reinstalls openvswitch so the hack must be redone.
+  tasks:
+
+# HACK HACK - bz 1508495 work around
+  - name: hack1
+    template: src=/root/vmscale/templates/ovs-vswitchd.service.j2 dest=/usr/lib/systemd/system/ovs-vswitchd.service
+
+  - name: hack2
+    template: src=/root/vmscale/templates/ovsdb-server.service.j2  dest=/usr/lib/systemd/system/ovsdb-server.service
+
+  - name: hack3
+    template: src=/root/vmscale/templates/openvswitch.j2 dest=/etc/sysconfig/openvswitch
+
+  - name: hack4
+    shell: systemctl daemon-reload
+
+  - name: turn of selinux
+    shell: setenforce 0
+# HACK HACK - bz 1508495 workaround
+
+# This shouldn't be needed
+# make sure all needed services are restarted.
+  - name: start ovs
+    service: name=ovsdb-server state=restarted
+
+  - name: start openvswitch
+    service: name=openvswitch state=restarted
+
+  - name: restart docker
+    service: name=docker state=restarted
+
+  - name: restart NetworkManager
+    service: name=NetworkManager state=restarted
+
+  - name: restart firewalld
+    service: name=firewalld state=restarted
+
+  - name: copy hosts
+    copy: src=/etc/hosts dest=/etc/hosts
+
+  - name: copy openshift_additional.repo
+    copy: src=/etc/yum.repos.d/openshift_additional.repo dest=/etc/yum.repos.d/openshift_additional.repo
+
+# The rules must be applied to the desired chain.
+  - name: iptables 6641
+#   shell: iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+#   shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 6641 -j ACCEPT
+
+  - name: iptables 6642
+#   shell: iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+#   shell: iptables -A OS_FIREWALL_ALLOW -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 6642 -j ACCEPT
+
+  - name: iptables 10250
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 10250 -j ACCEPT
+
+  - name: iptables 80
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+
+  - name: iptables 443
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+
+  - name: iptables 8443
+    shell: iptables -A IN_public_allow -p tcp -m state --state NEW -m tcp --dport 8443 -j ACCEPT
+
+  - name: iptables 4789
+    shell: iptables -A IN_public_allow -p udp -m state --state NEW -m udp --dport 4789 -j ACCEPT
+
+  - name: Ensure GENEVE's UDP port isn't firewalled
+    shell: /usr/share/openvswitch/scripts/ovs-ctl --protocol=udp --dport=6081 enable-protocol
+
+# At this point "oc get nodes" should show all nodes as "NotReady"
+# since ovn is not set up yet.
+
+
+

@@ -1,0 +1,58 @@
+---
+# development openvswitch-ovn-kubernetes install
+#
+# This playbook installs OVN rpms on the cluster
+# the ovn-kubernetes rpms are built elsewhere and copied to this 
+# directory. They are copied to each node and installed
+
+- name: Install OVN rpms
+  hosts: nodes
+
+  tasks:
+  - name: install packages
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - openvswitch-ovn-common
+      - openvswitch-ovn-central
+      - openvswitch-ovn-vtep
+      - openvswitch-ovn-host
+
+  - name: Copy ovn rpm file to server
+    copy:
+       src: openvswitch-ovn-kubernetes.fc28.x86_64.rpm
+       dest: /tmp/openvswitch-ovn-kubernetes.fc28.x86_64.rpm
+
+  - name: Copy ovn-node rpm file to server
+    copy:
+       src: openvswitch-ovn-kubernetes-node.fc28.x86_64.rpm
+       dest: /tmp/openvswitch-ovn-kubernetes-node.fc28.x86_64.rpm
+
+  - name: Install package.
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - /tmp/openvswitch-ovn-kubernetes.fc28.x86_64.rpm
+      - /tmp/openvswitch-ovn-kubernetes-node.fc28.x86_64.rpm
+
+  - name: start ovn-controller
+    service: name=ovn-controller state=restarted
+
+- name: Install OVN-master rpm
+  hosts: masters
+
+  tasks:
+  - name: Copy ovn-master rpm file to server
+    copy:
+       src: openvswitch-ovn-kubernetes-master.fc28.x86_64.rpm
+       dest: /tmp/openvswitch-ovn-kubernetes-master.fc28.x86_64.rpm
+
+  - name: install OVN-master
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=present
+    with_items:
+      - /tmp/openvswitch-ovn-kubernetes-master.fc28.x86_64.rpm
+
+  - name: start ovn-northd
+    service: name=ovn-northd state=restarted
+

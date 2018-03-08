@@ -1,0 +1,96 @@
+---
+# This playbook removes OVN rpms and config from cluster
+
+- name: Uninstall OVN
+  hosts: nodes
+
+  tasks:
+  - name: stop ovn-kubernetes-node
+    service: name=ovn-kubernetes-node state=stopped
+    ignore_errors: yes
+
+  - name: disable ovn-kubernetes-node
+    shell: systemctl disable ovn-kubernetes-node
+    ignore_errors: yes
+
+  - name: stop ovn-controller
+    service: name=ovn-controller state=stopped
+    ignore_errors: yes
+
+  - name: disable ovn-controller
+    shell: systemctl disable ovn-controller
+    ignore_errors: yes
+
+  - name: stop ovs-vswitchd
+    service: name=ovs-vswitchd state=stopped
+    ignore_errors: yes
+
+  - name: disable ovs-vswitchd
+    shell: systemctl disable ovs-vswitchd
+    ignore_errors: yes
+
+  - name: stop ovsdb-server
+    service: name=ovsdb-server state=stopped
+    ignore_errors: yes
+
+  - name: disable ovsdb-server
+    shell: systemctl disable ovsdb-server
+    ignore_errors: yes
+
+  - name: uninstall packages
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=removed
+    with_items:
+      - openvswitch-ovn-common
+      - openvswitch-ovn-central
+      - openvswitch-ovn-vtep
+      - openvswitch-ovn-host
+      - openvswitch-ovn-kubernetes
+      - openvswitch-ovn-kubernetes-node
+    ignore_errors: yes
+
+  - name: delete /etc/cni/net.d/10-ovn-kubernetes.conf
+    file:
+      state: absent
+      path: /etc/cni/net.d/10-ovn-kubernetes.conf
+    ignore_errors: yes
+
+  - name: delete /etc/sysconfig/ovn-kubernetes.rpmsave
+    file:
+      state: absent
+      path: /etc/sysconfig/ovn-kubernetes.rpmsave
+    ignore_errors: yes
+
+  - name: delete /etc/openvswitch/ovn_k8s.conf.rpmsave
+    file:
+      state: absent
+      path: /etc/openvswitch/ovn_k8s.conf.rpmsave
+    ignore_errors: yes
+
+- name: Uninstall OVN-master
+  hosts: masters
+
+  tasks:
+  - name: stop ovn-kubernetes-master
+    service: name=ovn-kubernetes-master state=stopped
+    ignore_errors: yes
+
+  - name: disable ovn-kubernetes-master
+    shell: systemctl disable ovn-kubernetes-master
+    ignore_errors: yes
+
+  - name: stop ovn-northd
+    service: name=ovn-northd state=stopped
+    ignore_errors: yes
+
+  - name: disable ovn-northd
+    shell: systemctl disable ovn-northd
+    ignore_errors: yes
+
+  - name: uninstall ovn-master package
+    action: >
+      {{ ansible_pkg_mgr }} name={{ item }} state=removed
+    with_items:
+      - openvswitch-ovn-kubernetes-master
+    ignore_errors: yes
+

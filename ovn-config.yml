@@ -1,0 +1,68 @@
+---
+# This playbook creates the OVN configuration file and installs
+# it on all nodes in the cluster
+# this is run after the openshift master is up
+
+- name: Create OVN config files
+  hosts: masters
+
+  tasks:
+  # this collects the configuration and creates files
+  # that will be fetched and copied to the nodes
+  - name: Configure ovn-kubernetes
+    script: scripts/ovn-config.sh
+
+  - name: fetch the ovn-kubernetes file
+    fetch:
+      src: /tmp/ovn-kubernetes
+      dest: /tmp/ovn-kubernetes
+      flat: yes
+
+  - name: fetch the ovn_k8s.conf file
+    fetch:
+      src: /tmp/ovn_k8s.conf
+      dest: /tmp/ovn_k8s.conf
+      flat: yes
+
+  - name: Copy ovn-kubernetes file to master
+    copy:
+       src: /tmp/ovn-kubernetes
+       dest: /etc/sysconfig/ovn-kubernetes
+
+  - name: Copy ovn_k8s.conf file to master
+    copy:
+       src: /tmp/ovn_k8s.conf
+       dest: /etc/openvswitch/ovn_k8s.conf
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: enable ovn-kubernetes-master
+    shell: systemctl enable ovn-kubernetes-master
+
+  - name: start ovn-kubernetes-master
+    service: name=ovn-kubernetes-master state=restarted
+
+
+- name: Configure ovn-kubernetes nodes
+  hosts: nodes
+  tasks:
+  - name: Copy ovn-kubernetes file to node
+    copy:
+       src: /tmp/ovn-kubernetes
+       dest: /etc/sysconfig/ovn-kubernetes
+
+  - name: Copy ovn_k8s.conf file to node
+    copy:
+       src: /tmp/ovn_k8s.conf
+       dest: /etc/openvswitch/ovn_k8s.conf
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: enable ovn-kubernetes-node
+    shell: systemctl enable ovn-kubernetes-node
+
+  - name: start ovn-kubernetes-node
+    service: name=ovn-kubernetes-node state=restarted
+
