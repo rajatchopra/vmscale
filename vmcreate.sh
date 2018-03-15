@@ -20,9 +20,15 @@ NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
 
 ## 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+<<<<<<< HEAD
 INSTALL_DIR=${INSTALL_DIR:-/root/vmscale}
+=======
+INSTALL_DIR=${INSTALL_DIR:-${SCRIPT_DIR}}
+QCOW_INSTALL_DIR=${QCOW_INSTALL_DIR:-${INSTALL_DIR}}
+>>>>>>> redo default install directories
 PROJECT_NAME=${PROJECT_NAME:-ovn-kubernetes}
 STORAGE_DIR=${STORAGE_DIR:-libvirt_storage}
+VM_DIR=${VM_DIR:-${STORAGE_DIR}}
 
 ##
 install_pkgs() {
@@ -33,9 +39,9 @@ install_pkgs() {
 
 }
 
-export STORAGE_PATH=${INSTALL_DIR}/${STORAGE_DIR}
+export STORAGE_PATH=${QCOW_INSTALL_DIR}/${STORAGE_DIR}
 mkdir -p ${STORAGE_PATH}
-cd ${STORAGE_PATH}
+pushd ${STORAGE_PATH}
 
 #if [ ! -f CentOS-7-x86_64-GenericCloud.qcow2 ]; then
   #wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
@@ -47,6 +53,12 @@ cd ${STORAGE_PATH}
 if [ ! -f Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 ]; then
   wget https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2
 fi
+
+popd
+
+VM_PATH=${INSTALL_DIR}/${VM_DIR}
+mkdir -p ${VM_PATH}
+pushd ${VM_PATH}
 
 ## Create a storage pool
 # https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/chap-Virtualization_Administration_Guide-Storage_Pools-Storage_Pools.html
@@ -76,9 +88,8 @@ do
   sed -i s/NODE_NAME/${NODE_NAME}/ meta-data
   genisoimage -output ${NODE_NAME}_cloud-init.iso -volid cidata -joliet -rock user-data meta-data
   #virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/CentOS-7-x86_64-GenericCloud.qcow2 --backing-vol-format qcow2
-  #virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-27-1.6.x86_64.qcow2 --backing-vol-format qcow2
-  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 50G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 --backing-vol-format qcow2
-  virt-install --connect qemu:///system --ram 18432 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${STORAGE_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${STORAGE_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
+  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 120G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2 --backing-vol-format qcow2
+  virt-install --connect qemu:///system --ram 18432 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${VM_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${VM_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
   #virsh attach-interface --domain ${NODE_NAME} --type bridge --source rcbr0 --config --live
   popd
   echo "Done creating machine number $i"

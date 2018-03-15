@@ -2,12 +2,12 @@
 
 NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+INSTALL_DIR=${INSTALL_DIR:-${SCRIPT_DIR}}
 PROJECT_NAME=${PROJECT_NAME:-ovn-kubernetes}
+VM_DIR=${VM_DIR:-libvirt_storage}
 
-cd /data/src/vmscale
-mkdir -p libvirt_storage
-cd libvirt_storage
-export STORAGE_PATH=`pwd`
+cd ${INSTALL_DIR}/${VM_DIR}
 
 MACHINE_PREFIX=`hostname`
 for i in `seq 1 ${NUM_VMS_PER_MACHINE}`
