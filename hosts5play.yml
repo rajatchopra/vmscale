@@ -18,7 +18,7 @@
     with_items:
       - yum
       - yum-utils
-      - python2-dbus
+#     - python2-dbus
       - python3-dbus
       - firewalld
       - NetworkManager

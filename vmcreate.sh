@@ -17,6 +17,12 @@
 
 NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
 
+# qcow2 image for the VMs from:
+# https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/
+# https://dl.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images/
+qcow2root=https://dl.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images
+#qcow2image=Fedora-Cloud-Base-Rawhide-20180303.n.0.x86_64.qcow2
+qcow2image=Fedora-Cloud-Base-27-1.6.x86_64.qcow2
 
 ## 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -39,17 +45,13 @@ export STORAGE_PATH=${QCOW_INSTALL_DIR}/${STORAGE_DIR}
 mkdir -p ${STORAGE_PATH}
 pushd ${STORAGE_PATH}
 
-#### Get the qcow2 file for the VM
-# This setup uses fedora rawhide
-#qcow2image=Fedora-Cloud-Base-Rawhide-20180303.n.0.x86_64.qcow2
-qcow2image=Fedora-Cloud-Base-27-1.6.x86_64.qcow2
 
 #if [ ! -f CentOS-7-x86_64-GenericCloud.qcow2 ]; then
   #wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
   #unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
 #fi
 if [ ! -f ${qcow2image} ]; then
-  wget https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/${qcow2image}
+  wget ${qcow2root}/${qcow2image}
 fi
 
 popd

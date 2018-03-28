@@ -222,7 +222,7 @@ The Openshift install is done using playbooks that are found in
 an Openshift development puddle.
 
 On the host, netdev31, get the repo:
-# cat > /etc/yum.repos.d/openshift_additional.repo < EOF
+# cat > /etc/yum.repos.d/openshift_additional.repo <<'EOF'
 [AtomicOpenShift-3.9-Puddle]
 name=AtomicOpenShift-3.9-Puddle
 baseurl=http://download.lab.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.9/latest/$basearch/os
@@ -255,7 +255,12 @@ ose5run facts|cluster|master|node|certs|uninstall
 
 Install Openshift from the puddle using CNI (ovn)
 (The install required python3)
-./run5ose cluster
+# ./run5ose cluster
+
+The above fails in the console install. Work around this by
+# ./run5ose master
+# ./run5ose node
+
 
 ==================================
 After OSE is installed, run this to repair the HACK and restart the daemons
