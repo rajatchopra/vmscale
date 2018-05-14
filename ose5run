@@ -1,20 +1,63 @@
 #!/bin/bash
 
+action="XX"
+if [ X$1 != "X" ]
+then
+  action=$1
+fi
+
 # Do the OSE install from a puddle
 # This requires python3
 
 # This verifies that the VMs are properly provisioned to install the cluster
-#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/byo/openshift_facts.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+if [ ${action} == "facts" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/byo/openshift_facts.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
 
 # this should install the OSE cluster
-#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+if [ ${action} == "cluster" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
 
 # Install the master - if deploy_cluster.yml failed
-# ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-master/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+if [ ${action} == "master" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-master/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+# Install etcd - if deploy_cluster.yml failed
+if [ ${action} == "etcd" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-etcd/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
 
 # Install the nodes - if deploy_cluster.yml failed
-ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-node/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+if [ ${action} == "node" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/openshift-node/config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+# redeploy the certificates
+if [ ${action} == "certs" ]
+then
+/playbooks/redeploy-certificates.yml
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/redeploy-certificates.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
 
 # Uninstall the cluster
-#ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/adhoc/uninstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+if [ ${action} == "uninstall" ]
+then
+  ansible-playbook -i ose5hosts /usr/share/ansible/openshift-ansible/playbooks/adhoc/uninstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
 
+echo "ose5run facts|cluster|master|node|certs|uninstall"
+exit 1

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Install, configure and uninstall ovn
+# This is done after the cluster install
+# It uses the same hosts file
+
+action="XX"
+if [ X$1 != "X" ]
+then
+  action=$1
+fi
+
+# Do the OSE install from a puddle
+# This requires python3
+
+# this should install the OVN rpms on the cluster
+if [ ${action} == "install" ]
+then
+  ansible-playbook -i ose5hosts ovn-install.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+# this should install the OVN rpms on the cluster
+# ovn-kubernetes from local rpm
+if [ ${action} == "installdevel" ]
+then
+  ansible-playbook -i ose5hosts ovn-devel-install.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+# Create the config file and distribute to all nodes
+if [ ${action} == "config" ]
+then
+  ansible-playbook -i ose5hosts ovn-config.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+# Uninstall ovn rpms and config
+if [ ${action} == "uninstall" ]
+then
+  ansible-playbook -i ose5hosts ovn-uninstall.yml -e 'ansible_python_interpreter=/usr/bin/python3'
+  exit 0
+fi
+
+echo "oseovn install|installdevel|config|uninstall"
+exit 1

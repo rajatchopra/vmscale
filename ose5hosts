@@ -1,7 +1,6 @@
 # Create an OSEv3 group that contains the masters and nodes groups
 # This is for 1 host and 5 VMs (netdev31 with 5 VMs)
 # This is only verified to work with 1 master and 1 etcd 
-
 [OSEv3:children]
 masters
 nodes
@@ -28,7 +27,8 @@ openshift_docker_insecure_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat
 
 # OCP/OSE puddle
 #Version 3.9
-openshift_additional_repos=[{'id': 'aos39-playbook-rpm', 'name': 'aos39-playbook-rpm', 'baseurl': 'http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.9/latest/x86_64/os/', 'enabled': 1, 'gpgcheck': 0}]
+#openshift_additional_repos=[{'id': 'aos39-playbook-rpm', 'name': 'aos39-playbook-rpm', 'baseurl': 'http://aconole.bytheb.org/files/ovs', 'enabled': 1, 'gpgcheck': 0}]
+openshift_additional_repos=[{'id': 'aos39-playbook-rpm', 'name': 'aos39-playbook-rpm', 'baseurl': 'http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.9/v3.9.8-1_2018-03-14.1/x86_64/os/', 'enabled': 1, 'gpgcheck': 0}]
 
 
 # Allow all auth
@@ -50,35 +50,22 @@ os_sdn_network_plugin_name='cni'
 # put IP name fqn into /etc/hosts
 # 
 
-[etcd]
-netdev31-1
-
 # host group for masters
 [masters]
-netdev31-1
-# openshift_hostname=netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com openshift_ip=192.168.122.103
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
+
+[etcd]
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
 
 # host group for nodes, includes region info
 [nodes]
-netdev31-1 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
-#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com openshift_ip=192.168.122.103 openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
 
-netdev31-2 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
-#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com openshift_ip=192.168.122.193 openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com openshift_node_labels="{'region': 'infra', 'zone': 'east'}"
 
-netdev31-3 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
-#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com openshift_ip=192.168.122.137 openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com openshift_node_labels="{'region': 'infra', 'zone': 'west'}"
 
-netdev31-4 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
-#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com openshift_ip=192.168.122.38 openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com openshift_node_labels="{'region': 'infra', 'zone': 'north'}"
 
-netdev31-5 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
-#openshift_hostname=wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com openshift_ip=192.168.122.135 openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
-
-#192.168.122.103 netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
-#192.168.122.193 netdev31-2 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com
-#192.168.122.137 netdev31-3 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com
-#192.168.122.38  netdev31-4 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com
-#192.168.122.135 netdev31-5 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com
-
+wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com openshift_node_labels="{'region': 'infra', 'zone': 'south'}"
 

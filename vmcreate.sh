@@ -17,6 +17,12 @@
 
 NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
 
+# qcow2 image for the VMs from:
+# https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/
+# https://dl.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images/
+qcow2root=https://dl.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images
+#qcow2image=Fedora-Cloud-Base-Rawhide-20180303.n.0.x86_64.qcow2
+qcow2image=Fedora-Cloud-Base-27-1.6.x86_64.qcow2
 
 ## 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -39,12 +45,13 @@ export STORAGE_PATH=${QCOW_INSTALL_DIR}/${STORAGE_DIR}
 mkdir -p ${STORAGE_PATH}
 pushd ${STORAGE_PATH}
 
+
 #if [ ! -f CentOS-7-x86_64-GenericCloud.qcow2 ]; then
   #wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz
   #unxz CentOS-7-x86_64-GenericCloud.qcow2.xz
 #fi
-if [ ! -f Fedora-Cloud-Base-27-1.6.x86_64.qcow2 ]; then
-  wget https://dl.fedoraproject.org/pub/fedora/linux/releases/27/CloudImages/x86_64/images/Fedora-Cloud-Base-27-1.6.x86_64.qcow2
+if [ ! -f ${qcow2image} ]; then
+  wget ${qcow2root}/${qcow2image}
 fi
 
 popd
@@ -67,6 +74,7 @@ virsh pool-refresh ${PROJECT_NAME}
 
 
 MACHINE_PREFIX=`hostname`
+VM_MEMORY=50G
 echo "Creating ${NUM_VMS_PER_MACHINE} machines:"
 for i in `seq 1 ${NUM_VMS_PER_MACHINE}`
 do
@@ -81,8 +89,8 @@ do
   sed -i s/NODE_NAME/${NODE_NAME}/ meta-data
   genisoimage -output ${NODE_NAME}_cloud-init.iso -volid cidata -joliet -rock user-data meta-data
   #virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 60G --format qcow2 --backing-vol ${STORAGE_PATH}/CentOS-7-x86_64-GenericCloud.qcow2 --backing-vol-format qcow2
-  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 120G --format qcow2 --backing-vol ${STORAGE_PATH}/Fedora-Cloud-Base-27-1.6.x86_64.qcow2 --backing-vol-format qcow2
-  virt-install --connect qemu:///system --ram 18432 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${VM_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${VM_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
+  virsh vol-create-as ${PROJECT_NAME} ${NODE_NAME}.qcow2 ${VM_MEMORY} --format qcow2 --backing-vol ${STORAGE_PATH}/${qcow2image} --backing-vol-format qcow2
+  virt-install --connect qemu:///system --ram 18432 -n ${NODE_NAME} --os-type=linux --os-variant=rhel7  --disk path=${STORAGE_PATH}/${NODE_NAME}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path=${STORAGE_PATH}/${NODE_NAME}_config/${NODE_NAME}_cloud-init.iso,device=cdrom,bus=virtio,format=iso --vcpus=2 --graphics spice --noautoconsole --import
   #virsh attach-interface --domain ${NODE_NAME} --type bridge --source rcbr0 --config --live
   popd
   echo "Done creating machine number $i"

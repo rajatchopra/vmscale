@@ -1,4 +1,8 @@
 20171208
+original
+20180307
+update for systemd via ovn-kubernetes RPMs
+---------------
 
 Install 5VM cluster on 1 physical (beaker) host
 Host is a Dell R730 with 4 port NIC card, 256Gb disk.
@@ -16,7 +20,7 @@ THE PHYSICAL HOST:
 
 The physical host is from a pool of hosts on beaker:
 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com
-fedora-rawhide Server will be installed and /root will be expanded to 
+fedora-rawhide Server will be installed and /root will be expanded to
 fill the 256Gb disk.
 5 VMs will be created on it and the cluster will have a node per VM.
 
@@ -42,7 +46,7 @@ select Distro Tree Fedora-rawhide-20180204.n.1 Server x86_64
 Click Provision
 
 When this is done the host will be running Fedora-rawhide
-Your default ssh key will be installed the host and the 
+Your default ssh key will be installed the host and the
 default root password will be installed.
 
 ===================================
@@ -62,7 +66,7 @@ Use ssh-copy-id to copy the key to each of the hosts. ssh login to
 each of the hosts to make sure it works without passwords or prompts.
 
 Fedora Server provisions a very small root (15Gb). The following expands it
-to 235 which is enough to support the VMs. When the host runs out of 
+to 235 which is enough to support the VMs. When the host runs out of
 disk space the VMs pause until more space is available.
 # lvextend --size +220G /dev/mapper/fedora-root ; xfs_growfs /
 
@@ -103,14 +107,16 @@ I have a fork of vmscale that I work with. So I use:
 ...
 
 
-Edit file user_data to add the generated public key (above) in two
+Edit file "user_data" to add the generated public key (above) in two
 places in the file.  Ansible, in  a later step will copy this to
 each VM so you will be able to ssh to each VM.
 
-Edit the desired qcow2 file name, e.g,
-https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2
-into vwget section and in the "virsh vol-create-as" section in the vmcreate.sh file.
-rawhide is built every day so the version changes every day. 
+Edit the desired qcow2 file name into "vmcreate.sh" file, fedora rawhide is here:
+https://dl.fedoraproject.org/pub/fedora/linux/development/rawhide/CloudImages/x86_64/images/
+qcow2image=<name of qcow2 file>
+e.g., qcow2image=Fedora-Cloud-Base-Rawhide-20180204.n.0.x86_64.qcow2
+
+rawhide is built every day so the version changes every day.
 
 Also, change NUM_VMS_PER_MACHINE to the number of nodes/host
 e.g., NUM_VMS_PER_MACHINE=${NUM_VMS_PER_MACHINE:-5}
@@ -128,9 +134,23 @@ as part of Fedora-27 Server.
 
 
 ==================
+If replacing an existing implementation:
+
+Cleanup the existing setup by running vmclean.sh after setting the
+correct number of VMs.
+
+# cd ~/vmscale
+# ./vmclean.sh
+# systemctl restart libvirt
+
+Also, delete old lines for the VMs from /etc/hosts.
+Also edit /root/.ssh/known_hosts
+and delete lines for old IP, host and fqn of the VMs.
+
+==================
 Install the 5 VMs that will be the nodes:
 
-edit vmcreate.sh to reference correct Fedora image in the wget section 
+edit vmcreate.sh to reference correct Fedora image in the wget section
 and in the "virsh vol-create-as" section
 Run vmcreate.sh to create the 5 VMs
 
@@ -146,85 +166,63 @@ Run vmcreate.sh to create the 5 VMs
  9     wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4 running
  10    wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5 running
 
-Manually configure the network on each of the 5 VMs on the host
 
-Manual configuration:
-ssh to each host in turn.
-# ssh 192.168.122.137 hostname
-wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com
-
-Find the IP addresses:
-# virsh net-dhcp-leases default
- Expiry Time          MAC address        Protocol  IP address          Hostname  Client ID or DUID
--------------------------------------------------------------------------------------------------------
- 2018-02-05 15:58:26  52:54:00:11:ab:e0  ipv4      192.168.122.137/24  -         ff:00:11:ab:e0:00:04:8a:4d:ed:1e:08:ae:42:91:8c:99:19:78:c3:84:23:93
- 2018-02-05 15:58:19  52:54:00:20:25:55  ipv4      192.168.122.103/24  -         ff:00:20:25:55:00:04:c3:60:21:61:c6:42:47:42:89:80:aa:46:1a:52:1c:2a
- 2018-02-05 15:58:26  52:54:00:61:1f:59  ipv4      192.168.122.193/24  -         ff:00:61:1f:59:00:04:5b:38:ce:ff:38:02:48:e9:a2:0e:83:0a:c0:cc:b5:d3
- 2018-02-05 15:58:26  52:54:00:c5:7e:17  ipv4      192.168.122.135/24  -         ff:00:c5:7e:17:00:04:c5:b6:14:c3:c6:9a:4b:50:8d:30:a5:a3:95:c2:cc:99
- 2018-02-05 15:58:26  52:54:00:f1:93:40  ipv4      192.168.122.38/24   -         ff:00:f1:93:40:00:04:ff:c1:25:61:99:0f:46:a8:ba:0c:d8:ca:7e:f9:91:b8
-
-ssh to each address and note the VM name
-Add a line to /etc/hosts
-echo 192.168.122.137 netdev31-3 >> /etc/hosts
-This allows easy future access by name:
-# ssh netdev31-3
+Run
+./get-hosts.sh >> /etc/hosts
+to get the lines needed for the VMs
 
 # cat /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
-192.168.122.137 netdev31-3 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com
-192.168.122.103 netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
-192.168.122.193 netdev31-2 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com
-192.168.122.135 netdev31-5 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com
-192.168.122.38  netdev31-4 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com
+192.168.122.240 netdev31-2 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-2.example.com
+192.168.122.165 netdev31-3 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-3.example.com
+192.168.122.234 netdev31-1 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-1.example.com
+192.168.122.154 netdev31-5 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-5.example.com
+192.168.122.189 netdev31-4 wsfd-netdev31.ntdv.lab.eng.bos.redhat.com-4.example.com
 
 
-Verify that master can ssh to all of the VMs without password. E.g.,
-
-The cluster will be the 5 VMs that you just verified.
+Run this to verify that master can ssh to all of the VMs without password.
+./try-vms.sh
+to try to ssh to each host and fqn. Answer "yes" when asked.
 
 ============================
-On master:
-openvswitch-ovn-kubernetes is available in fedora rawhide
+Install python on each VM (this is needed by ansible)
+./install-python.sh
 
 ============================
 Provision each VM to be part of the cluster:
 
-The VMs are up and the master can reach each of them so at this
+The VMs are up and the host can reach each of them so at this
 point we can provision the VMs to be part of the future cluster.
 
-Install python on each vm. Ansible requires this to work, e.g.,
-# ssh netdev31-1 dnf install -y python
+hosts5run       - script to run ansible-playbook
+hosts5play.yml  - the install playbook
+hosts5post1.yml - the cleanup/post-processing playbook
+hosts5          - the set of hosts
 
-hosts5run      - script to run ansible-playbook
-hosts5play.yml - the playbook
-hosts5         - the set of hosts
-
-hosts5play.yml does the following on each VM:
+./hosts5run install
+does the following on each VM:
 - install ansible
 - install packages from the various repos (beaker-fedora and fedora)
 - add the 172.30.0.0/16 CIDR to the insecure registries token
-- add the brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888 
+- add the brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
   and registry.ops.openshift.com registries as insecure.
 - restart docker
 - restart the ovn-controller
 - copy /etc/hosts to each VM - gives names and IP of all nodes
 - set permissions on the excutables/scripts
-- Add iptables firewall rules for ovn ports 6641 and 6642
-- Ensure GENEVE's UDP port, 6081, isn't firewalled
 
-At this point we are ready to install Openshift. It won't start
-properly until ovnkube is run configuring Openshift to ovn.
+After this, ose is installed...
 
 ===================================
-Install Openshift
+Install Openshift-Ansible
 
-The Openshift install is done using playbooks that are found in 
+The Openshift install is done using playbooks that are found in
 an Openshift development puddle.
 
-Get the repo:
-# cat > /etc/yum.repos.d/openshift_additional.repo < EOF
+On the host, netdev31, get the repo:
+# cat > /etc/yum.repos.d/openshift_additional.repo <<'EOF'
 [AtomicOpenShift-3.9-Puddle]
 name=AtomicOpenShift-3.9-Puddle
 baseurl=http://download.lab.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.9/latest/$basearch/os
@@ -233,24 +231,101 @@ enabled=1
 
 EOF
 
+On the host, netdev31, install the following:
 # dnf install \
 openshift-ansible \
 openshift-ansible-docs \
 openshift-ansible-playbooks \
 openshift-ansible-roles
 
-The osehosts file:
+============================
+At this point we are ready to install Openshift.
+
+The ose5hosts file:
 This file directs the install. There are several items to consider.
 
+The file must contain:
+os_sdn_network_plugin_name='cni'
+
 At present we have tested with 1 master and 1 etcd
+The host names are the VM's `hostname`
+
+# ./ose5run 
+ose5run facts|cluster|master|node|certs|uninstall
 
 Install Openshift from the puddle using CNI (ovn)
 (The install required python3)
-./run5ose
+# ./run5ose cluster
 
+The above fails in the console install. Work around this by
+# ./run5ose master
+# ./run5ose node
+
+
+==================================
+After OSE is installed, run this to repair the HACK and restart the daemons
+
+# ./hosts5run post
+This does the following:
+- re apply the HACK
+- restart the daemons
+- Add iptables firewall rules for ovn ports 6641 and 6642
+- Ensure GENEVE's UDP port, 6081, isn't firewalled
+
+At this point "oc get nodes" should show all nodes in a NotReady state.
+
+After OVN is intalled in a later step, they will report Ready.
+
+
+============================
+ovn is installed using 
+# ./oseovn
+oseovn install|installdevel|config|uninstall
+
+install - installs the openvswitch-ovn-kubernetes RPMs 
+          from the rpms in OCP or Fedora
+installdevel - installs the openvswitch-ovn-kubernetes RPMs
+          from local copies in vmscale/
+          During development the rpms can be built from the
+          ovn-kubernetes github repo.
+config  - get the configuration needed to access the API server
+uninstall - remove ovn components and configuration.
+
+1) Install either rpms from OCP or Fedora or rpms locally
+built from a github ovn-kubernetes clone.
+
+2) Run config to create the /etc/openvswitch/ovn_k8s.conf file 
+and /etc/sysconfig/ovn-kubernetes files and copy them to all nodes.
+Openshift is configured to use ovn here as well.  This also restarts
+the daemons. At this point "oc get nodes" should show all nodes in
+the Ready state.
+ 
+============================
+Notes on ovn-kubernetes rpms:
+
+There are 3 rpms built for ovn-kubernetes
+
+openvswitch-ovn-kubernetes is installed on the master and 
+all nodes.
+
+This is installed on the master
+  openvswitch-ovn-kubernetes-master
+and this is installed on all all nodes.
+  openvswitch-ovn-kubernetes-node
+
+The master and node rpms contain systemd configuration files.
+ovn-controller is run on all nodes.
+ovn-northd is run on the master.
+
+The openvswitch-ovn-kubernetes RPMs are available in fedora rawhide
+and in the OCP puddle.
+
+You can clone ovn-kubernetes and build the rpms there for any commit.
+Copy them here (vmscale/) and use "./oseovn installdevel" to install them.
 
 ========================
-When master and etcd are up:
+Openshift is configured to use ovn with the following.
+This is done in "./oseovn config".
 
 See if api is running
 # ssh netdev31-1 oc get --raw /healthz/ready
@@ -262,15 +337,6 @@ ok
 # ssh netdev31-1 oc adm policy add-cluster-role-to-user cluster-admin -z ovn
 # ssh netdev31-1 oc adm policy add-scc-to-user anyuid -z ovn
 # ssh netdev31-1 oc sa get-token ovn  > /etc/origin/master/ovn.token
-
-Manually create the /etc/sysconfig/ovn-kubernetes file.
-Get the needed information from the openshift master.
-Copy the file to each node. Masters and nodes use the same file. 
-Restart the ovn-kubernetes-master.service on the ovn master and on each node
-restart the ovn-kubernetes-node.service 
-
-templates/ovn-kubernetes-master-setup.sh.j2 
-is script that can be run on master to fill in the data.
 
 
 ==================
